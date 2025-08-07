@@ -1,0 +1,2868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timesheet Data Preparation Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: border-color 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .date-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .process-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .preview-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .preview-section.show {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .preview-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .preview-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-info h4 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+
+        .summary-info p {
+            color: #0c5460;
+            margin: 5px 0;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .download-section.show {
+            display: block;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #ffeaa7;
+            display: none;
+        }
+
+        .warning-message.show {
+            display: block;
+        }
+
+        .field-error {
+            color: #dc3545;
+            font-size: 0.875em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-control.error {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .processing-indicator {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 6px;
+            text-align: left;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info h4 {
+            color: #0c5460;
+            margin-bottom: 8px;
+        }
+
+        .file-info p {
+            color: #0c5460;
+            margin: 3px 0;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 0;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .date-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .upload-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Timesheet Data Preparation Tool</h1>
+            <p>Upload your CSV timesheet data and add date range information for easy processing</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Error/Success Messages -->
+            <div id="errorMessage" class="error-message" role="alert">
+                <strong>Error:</strong> <span id="errorText"></span>
+            </div>
+
+            <div id="successMessage" class="success-message" role="alert">
+                <strong>Success:</strong> <span id="successText"></span>
+            </div>
+
+            <!-- File Upload Section -->
+            <div class="upload-section">
+                <h2 class="section-title">Upload CSV File</h2>
+
+                <div class="form-group">
+                    <label for="csvFile">Select CSV File:</label>
+                    <input type="file" id="csvFile" class="form-control" accept=".csv" aria-describedby="fileHelp">
+                    <small id="fileHelp" style="color: #6c757d; margin-top: 5px; display: block;">
+                        Please select a CSV file containing timesheet data with columns: "Tracked by Name", "Billable",
+                        "Sum"
+                    </small>
+                </div>
+
+                <div id="fileInfo" class="file-info">
+                    <h4>File Information</h4>
+                    <p><strong>Name:</strong> <span id="fileName"></span></p>
+                    <p><strong>Size:</strong> <span id="fileSize"></span></p>
+                    <p><strong>Type:</strong> <span id="fileType"></span></p>
+                </div>
+
+                <div class="date-inputs">
+                    <div class="form-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" id="startDate" class="form-control" aria-describedby="startDateHelp">
+                        <small id="startDateHelp" style="color: #6c757d; margin-top: 5px; display: block;">
+                            Select the start date for the timesheet period
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" id="endDate" class="form-control" aria-describedby="endDateHelp">
+                        <small id="endDateHelp" style="color: #6c757d; margin-top: 5px; display: block;">
+                            Select the end date for the timesheet period
+                        </small>
+                    </div>
+                </div>
+
+                <div class="process-section">
+                    <button id="processBtn" class="btn" disabled>
+                        Process Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div id="previewSection" class="preview-section">
+                <h2 class="section-title">Data Preview</h2>
+
+                <div id="summaryInfo" class="summary-info">
+                    <h4>Processing Summary</h4>
+                    <p><strong>Total Rows Processed:</strong> <span id="totalRows">0</span></p>
+                    <p><strong>Date Range Applied:</strong> <span id="dateRange">-</span></p>
+                    <p><strong>Month Added:</strong> <span id="monthAdded">-</span></p>
+                    <p><strong>Year Added:</strong> <span id="yearAdded">-</span></p>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table id="previewTable" class="preview-table">
+                        <thead>
+                            <tr>
+                                <!-- Table headers will be populated dynamically -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Table rows will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style="color: #6c757d; font-style: italic; text-align: center; margin-top: 10px;">
+                    Showing first 15 rows of processed data
+                </p>
+            </div>
+
+            <!-- Download Section -->
+            <div id="downloadSection" class="download-section">
+                <h2 class="section-title">Download Processed Data</h2>
+                <p style="margin-bottom: 20px; color: #6c757d;">
+                    Your data has been processed successfully. Click the button below to download the CSV file with
+                    added Month and Year columns.
+                </p>
+                <button id="downloadBtn" class="btn btn-success">
+                    Download Processed CSV
+                </button>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #6c757d;">
+                    File will be saved as: <strong><span id="downloadFileName">data_processed.csv</span></strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CSVParser class for handling CSV parsing and stringifying
+        class CSVParser {
+            /**
+             * Parses CSV text into an array of objects
+             * @param {string} csvText - The CSV text to parse
+             * @returns {Array<Object>} Array of objects representing CSV rows
+             */
+            static parse(csvText) {
+                if (!csvText || typeof csvText !== 'string') {
+                    throw new Error('Invalid CSV text provided');
+                }
+
+                const lines = csvText.trim().split('\n');
+                if (lines.length === 0) {
+                    throw new Error('Empty CSV file');
+                }
+
+                // Detect delimiter (comma or tab)
+                const delimiter = this.detectDelimiter(lines[0]);
+
+                // Parse header row
+                const headers = this.parseCSVLine(lines[0], delimiter);
+                if (headers.length === 0) {
+                    throw new Error('No headers found in CSV file');
+                }
+
+                const result = [];
+
+                // Parse data rows
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line === '') continue; // Skip empty lines
+
+                    try {
+                        const values = this.parseCSVLine(line, delimiter);
+
+                        // Create object with headers as keys
+                        const row = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            row[headers[j]] = j < values.length ? values[j] : '';
+                        }
+                        result.push(row);
+                    } catch (error) {
+                        throw new Error(`Error parsing line ${i + 1}: ${error.message}`);
+                    }
+                }
+
+                return result;
+            }
+
+            /**
+             * Detects the delimiter used in the CSV (comma or tab)
+             * @param {string} headerLine - The first line of the CSV
+             * @returns {string} The detected delimiter
+             */
+            static detectDelimiter(headerLine) {
+                // Count commas and tabs in the header line
+                const commaCount = (headerLine.match(/,/g) || []).length;
+                const tabCount = (headerLine.match(/\t/g) || []).length;
+
+                // Return the delimiter with higher count, default to comma
+                return tabCount > commaCount ? '\t' : ',';
+            }
+
+            /**
+             * Converts an array of objects back to CSV format
+             * @param {Array<Object>} dataArray - Array of objects to convert
+             * @returns {string} CSV formatted string
+             */
+            static stringify(dataArray) {
+                if (!Array.isArray(dataArray) || dataArray.length === 0) {
+                    return '';
+                }
+
+                // Get headers from first object
+                const headers = Object.keys(dataArray[0]);
+
+                // Create header row
+                const csvLines = [this.stringifyCSVLine(headers)];
+
+                // Create data rows
+                for (const row of dataArray) {
+                    const values = headers.map(header => row[header] || '');
+                    csvLines.push(this.stringifyCSVLine(values));
+                }
+
+                return csvLines.join('\n');
+            }
+
+            /**
+             * Parses a single CSV line, handling quoted fields and escaped separators
+             * @param {string} line - The CSV line to parse
+             * @param {string} delimiter - The delimiter to use (comma or tab)
+             * @returns {Array<string>} Array of field values
+             */
+            static parseCSVLine(line, delimiter = ',') {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                let i = 0;
+
+                while (i < line.length) {
+                    const char = line[i];
+                    const nextChar = line[i + 1];
+
+                    if (char === '"') {
+                        if (inQuotes && nextChar === '"') {
+                            // Escaped quote within quoted field
+                            current += '"';
+                            i += 2;
+                        } else {
+                            // Toggle quote state
+                            inQuotes = !inQuotes;
+                            i++;
+                        }
+                    } else if (char === delimiter && !inQuotes) {
+                        // Field separator
+                        result.push(current.trim());
+                        current = '';
+                        i++;
+                    } else {
+                        // Regular character
+                        current += char;
+                        i++;
+                    }
+                }
+
+                // Add the last field
+                result.push(current.trim());
+                return result;
+            }
+
+            /**
+             * Converts an array of values to a CSV line, properly escaping commas and quotes
+             * @param {Array<string>} values - Array of values to convert
+             * @returns {string} CSV formatted line
+             */
+            static stringifyCSVLine(values) {
+                return values.map(value => {
+                    const stringValue = String(value || '');
+
+                    // Check if value needs quoting (contains comma, quote, or newline)
+                    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+                        // Escape quotes by doubling them
+                        const escapedValue = stringValue.replace(/"/g, '""');
+                        return `"${escapedValue}"`;
+                    }
+
+                    return stringValue;
+                }).join(',');
+            }
+        }
+
+        // Unit tests for CSVParser
+        class CSVParserTests {
+            static runAllTests() {
+                console.log('Running CSVParser unit tests...');
+
+                try {
+                    this.testBasicParsing();
+                    this.testQuotedFields();
+                    this.testEscapedCommas();
+                    this.testEscapedQuotes();
+                    this.testEmptyFields();
+                    this.testRoundTripConversion();
+                    this.testEdgeCases();
+                    this.testErrorHandling();
+
+                    console.log('✅ All CSVParser tests passed!');
+                    return true;
+                } catch (error) {
+                    console.error('❌ CSVParser test failed:', error.message);
+                    return false;
+                }
+            }
+
+            static testBasicParsing() {
+                const csv = 'Name,Age,City\nJohn,25,New York\nJane,30,Boston';
+                const result = CSVParser.parse(csv);
+
+                this.assertEqual(result.length, 2, 'Should parse 2 rows');
+                this.assertEqual(result[0].Name, 'John', 'First row name should be John');
+                this.assertEqual(result[0].Age, '25', 'First row age should be 25');
+                this.assertEqual(result[1].City, 'Boston', 'Second row city should be Boston');
+            }
+
+            static testQuotedFields() {
+                const csv = 'Name,Description\n"John Doe","A person with, comma"\n"Jane Smith","Another person"';
+                const result = CSVParser.parse(csv);
+
+                this.assertEqual(result.length, 2, 'Should parse 2 rows with quoted fields');
+                this.assertEqual(result[0].Name, 'John Doe', 'Quoted name should be parsed correctly');
+                this.assertEqual(result[0].Description, 'A person with, comma', 'Quoted field with comma should be parsed correctly');
+            }
+
+            static testEscapedCommas() {
+                const csv = 'Product,Price,Description\n"Widget A","$10.99","A widget, very useful"\n"Widget B","$15.99","Another widget"';
+                const result = CSVParser.parse(csv);
+
+                this.assertEqual(result[0].Description, 'A widget, very useful', 'Comma in quoted field should be preserved');
+            }
+
+            static testEscapedQuotes() {
+                const csv = 'Name,Quote\n"John","He said ""Hello"" to me"\n"Jane","She replied ""Hi there"""';
+                const result = CSVParser.parse(csv);
+
+                this.assertEqual(result[0].Quote, 'He said "Hello" to me', 'Escaped quotes should be handled correctly');
+                this.assertEqual(result[1].Quote, 'She replied "Hi there"', 'Multiple escaped quotes should be handled correctly');
+            }
+
+            static testEmptyFields() {
+                const csv = 'Name,Age,City\nJohn,,New York\n,25,\nJane,30,Boston';
+                const result = CSVParser.parse(csv);
+
+                this.assertEqual(result.length, 3, 'Should parse 3 rows with empty fields');
+                this.assertEqual(result[0].Age, '', 'Empty age field should be empty string');
+                this.assertEqual(result[1].Name, '', 'Empty name field should be empty string');
+                this.assertEqual(result[1].City, '', 'Empty city field should be empty string');
+            }
+
+            static testRoundTripConversion() {
+                const originalData = [
+                    { 'Tracked by Name': 'John Doe', 'Billable': 'Yes', 'Sum': '25.5' },
+                    { 'Tracked by Name': 'Jane Smith', 'Billable': 'No', 'Sum': '18.25' },
+                    { 'Tracked by Name': 'Bob, Jr.', 'Billable': 'Yes', 'Sum': '30.0' }
+                ];
+
+                const csvString = CSVParser.stringify(originalData);
+                const parsedData = CSVParser.parse(csvString);
+
+                this.assertEqual(parsedData.length, originalData.length, 'Round trip should preserve row count');
+                this.assertEqual(parsedData[0]['Tracked by Name'], 'John Doe', 'Round trip should preserve data');
+                this.assertEqual(parsedData[2]['Tracked by Name'], 'Bob, Jr.', 'Round trip should preserve commas in names');
+            }
+
+            static testEdgeCases() {
+                // Test with only headers
+                const headersOnly = 'Name,Age,City';
+                const result1 = CSVParser.parse(headersOnly);
+                this.assertEqual(result1.length, 0, 'Headers only should return empty array');
+
+                // Test with trailing newlines
+                const csvWithTrailing = 'Name,Age\nJohn,25\n\n';
+                const result2 = CSVParser.parse(csvWithTrailing);
+                this.assertEqual(result2.length, 1, 'Should ignore trailing empty lines');
+
+                // Test empty array stringification
+                const emptyString = CSVParser.stringify([]);
+                this.assertEqual(emptyString, '', 'Empty array should return empty string');
+
+                // Test tab-separated values (TSV)
+                const tsvData = 'Tracked by Name\tBillable\tSum\nJohn Doe\tYes\t25.5\nJane Smith\tNo\t18.25';
+                const result3 = CSVParser.parse(tsvData);
+                this.assertEqual(result3.length, 2, 'Should parse TSV data correctly');
+                this.assertEqual(result3[0]['Tracked by Name'], 'John Doe', 'TSV name should be parsed correctly');
+                this.assertEqual(result3[0]['Billable'], 'Yes', 'TSV billable should be parsed correctly');
+                this.assertEqual(result3[0]['Sum'], '25.5', 'TSV sum should be parsed correctly');
+            }
+
+            static testErrorHandling() {
+                // Test null input
+                try {
+                    CSVParser.parse(null);
+                    throw new Error('Should have thrown error for null input');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Invalid CSV text'), 'Should throw error for null input');
+                }
+
+                // Test empty string
+                try {
+                    CSVParser.parse('');
+                    throw new Error('Should have thrown error for empty string');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Empty CSV file'), 'Should throw error for empty string');
+                }
+
+                // Test non-string input
+                try {
+                    CSVParser.parse(123);
+                    throw new Error('Should have thrown error for non-string input');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Invalid CSV text'), 'Should throw error for non-string input');
+                }
+            }
+
+            // Test utility methods
+            static assertEqual(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(`${message}: expected "${expected}", got "${actual}"`);
+                }
+            }
+
+            static assertTrue(condition, message) {
+                if (!condition) {
+                    throw new Error(message);
+                }
+            }
+        }
+
+        // FileHandler class for handling file operations
+        class FileHandler {
+            /**
+             * Reads a file as text using the FileReader API
+             * @param {File} file - The file to read
+             * @returns {Promise<string>} Promise that resolves to the file content as text
+             */
+            static readFile(file) {
+                return new Promise((resolve, reject) => {
+                    if (!file) {
+                        reject(new Error('No file provided'));
+                        return;
+                    }
+
+                    const reader = new FileReader();
+
+                    reader.onload = function (event) {
+                        resolve(event.target.result);
+                    };
+
+                    reader.onerror = function (event) {
+                        reject(new Error('Error reading file: ' + event.target.error));
+                    };
+
+                    reader.readAsText(file);
+                });
+            }
+
+            /**
+             * Validates if a file is a valid CSV file
+             * @param {File} file - The file to validate
+             * @returns {Object} Validation result with isValid boolean and error message
+             */
+            static validateFile(file) {
+                if (!file) {
+                    return {
+                        isValid: false,
+                        error: 'No file selected'
+                    };
+                }
+
+                // Check file size (limit to 10MB for performance)
+                const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                if (file.size > maxSize) {
+                    return {
+                        isValid: false,
+                        error: 'File size too large. Please select a file smaller than 10MB.'
+                    };
+                }
+
+                // Check if file is empty
+                if (file.size === 0) {
+                    return {
+                        isValid: false,
+                        error: 'File is empty. Please select a valid CSV file.'
+                    };
+                }
+
+                // Check file extension
+                const fileName = file.name.toLowerCase();
+                const validExtensions = ['.csv', '.tsv', '.txt'];
+                const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+
+                if (!hasValidExtension) {
+                    return {
+                        isValid: false,
+                        error: 'Invalid file type. Please select a CSV file (.csv, .tsv, or .txt).'
+                    };
+                }
+
+                // Check MIME type if available
+                const validMimeTypes = [
+                    'text/csv',
+                    'text/plain',
+                    'application/csv',
+                    'text/tab-separated-values'
+                ];
+
+                if (file.type && !validMimeTypes.includes(file.type)) {
+                    return {
+                        isValid: false,
+                        error: 'Invalid file type. Please select a CSV file.'
+                    };
+                }
+
+                return {
+                    isValid: true,
+                    error: null
+                };
+            }
+
+            /**
+             * Formats file size for display
+             * @param {number} bytes - File size in bytes
+             * @returns {string} Formatted file size string
+             */
+            static formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        }
+
+        // UI Helper functions
+        class UIHelpers {
+            /**
+             * Shows an error message to the user
+             * @param {string} message - The error message to display
+             */
+            static showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                const errorText = document.getElementById('errorText');
+                const successDiv = document.getElementById('successMessage');
+
+                // Hide success message if showing
+                successDiv.classList.remove('show');
+
+                // Show error message
+                errorText.textContent = message;
+                errorDiv.classList.add('show');
+
+                // Auto-hide after 10 seconds for non-critical errors
+                if (!message.toLowerCase().includes('required') && !message.toLowerCase().includes('missing')) {
+                    setTimeout(() => {
+                        this.hideError();
+                    }, 10000);
+                }
+
+                // Log error for debugging
+                console.error('UI Error:', message);
+            }
+
+            /**
+             * Shows a success message to the user
+             * @param {string} message - The success message to display
+             */
+            static showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                const successText = document.getElementById('successText');
+                const errorDiv = document.getElementById('errorMessage');
+
+                // Hide error message if showing
+                errorDiv.classList.remove('show');
+
+                // Show success message
+                successText.textContent = message;
+                successDiv.classList.add('show');
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    this.hideSuccess();
+                }, 5000);
+
+                // Log success for debugging
+                console.log('UI Success:', message);
+            }
+
+            /**
+             * Hides all messages
+             */
+            static hideMessages() {
+                this.hideError();
+                this.hideSuccess();
+            }
+
+            /**
+             * Hides error message
+             */
+            static hideError() {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.classList.remove('show');
+            }
+
+            /**
+             * Hides success message
+             */
+            static hideSuccess() {
+                const successDiv = document.getElementById('successMessage');
+                successDiv.classList.remove('show');
+            }
+
+            /**
+             * Shows a processing status indicator
+             * @param {string} message - The processing status message
+             */
+            static showProcessing(message) {
+                const processBtn = document.getElementById('processBtn');
+                const originalText = processBtn.textContent;
+
+                // Store original text for restoration
+                processBtn.dataset.originalText = originalText;
+
+                // Create processing indicator if it doesn't exist
+                let indicator = processBtn.querySelector('.processing-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('span');
+                    indicator.className = 'processing-indicator';
+                    processBtn.insertBefore(indicator, processBtn.firstChild);
+                }
+
+                // Update button to show processing state
+                processBtn.innerHTML = `<span class="processing-indicator"></span>${message || 'Processing...'}`;
+                processBtn.disabled = true;
+                processBtn.style.cursor = 'wait';
+                processBtn.style.opacity = '0.8';
+
+                // Also show a status message if it's a long operation
+                if (message && (message.includes('Reading') || message.includes('Parsing') || message.includes('Processing'))) {
+                    this.showStatusMessage(message);
+                }
+
+                // Log processing state
+                console.log('Processing:', message);
+            }
+
+            /**
+             * Shows a temporary status message
+             * @param {string} message - The status message
+             */
+            static showStatusMessage(message) {
+                // Create or update status message element
+                let statusElement = document.getElementById('statusMessage');
+                if (!statusElement) {
+                    statusElement = document.createElement('div');
+                    statusElement.id = 'statusMessage';
+                    statusElement.style.cssText = `
+                        background: #e3f2fd;
+                        color: #1565c0;
+                        padding: 10px 15px;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                        font-size: 0.9em;
+                        border-left: 4px solid #2196f3;
+                        display: none;
+                    `;
+
+                    // Insert after the main content header
+                    const mainContent = document.querySelector('.main-content');
+                    const firstChild = mainContent.firstElementChild;
+                    mainContent.insertBefore(statusElement, firstChild);
+                }
+
+                statusElement.textContent = message;
+                statusElement.style.display = 'block';
+
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    if (statusElement) {
+                        statusElement.style.display = 'none';
+                    }
+                }, 3000);
+            }
+
+            /**
+             * Hides processing status and restores button state
+             */
+            static hideProcessing() {
+                const processBtn = document.getElementById('processBtn');
+                const originalText = processBtn.dataset.originalText || 'Process Data';
+
+                // Remove processing indicator
+                const indicator = processBtn.querySelector('.processing-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+
+                // Restore button state
+                processBtn.textContent = originalText;
+                processBtn.disabled = false;
+                processBtn.style.cursor = 'pointer';
+                processBtn.style.opacity = '1';
+
+                // Hide status message
+                const statusElement = document.getElementById('statusMessage');
+                if (statusElement) {
+                    statusElement.style.display = 'none';
+                }
+
+                // Clean up stored data
+                delete processBtn.dataset.originalText;
+            }
+
+            /**
+             * Updates file information display
+             * @param {File|null} file - The selected file or null to clear
+             */
+            static updateFileInfo(file) {
+                const fileInfo = document.getElementById('fileInfo');
+                const fileName = document.getElementById('fileName');
+                const fileSize = document.getElementById('fileSize');
+                const fileType = document.getElementById('fileType');
+
+                if (!file) {
+                    fileInfo.classList.remove('show');
+                    return;
+                }
+
+                // Update file information
+                fileName.textContent = file.name;
+                fileSize.textContent = FileHandler.formatFileSize(file.size);
+                fileType.textContent = file.type || 'Unknown';
+
+                // Show file info
+                fileInfo.classList.add('show');
+            }
+
+            /**
+             * Shows validation error for specific form field
+             * @param {string} fieldId - The ID of the form field
+             * @param {string} message - The validation error message
+             */
+            static showFieldError(fieldId, message) {
+                const field = document.getElementById(fieldId);
+                if (!field) return;
+
+                // Add error styling to field
+                field.style.borderColor = '#dc3545';
+                field.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
+
+                // Create or update error message element
+                let errorElement = document.getElementById(`${fieldId}-error`);
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.id = `${fieldId}-error`;
+                    errorElement.className = 'field-error';
+                    errorElement.style.color = '#dc3545';
+                    errorElement.style.fontSize = '0.875em';
+                    errorElement.style.marginTop = '5px';
+                    field.parentNode.appendChild(errorElement);
+                }
+
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+
+                // Set ARIA attributes for accessibility
+                field.setAttribute('aria-invalid', 'true');
+                field.setAttribute('aria-describedby', errorElement.id);
+            }
+
+            /**
+             * Clears validation error for specific form field
+             * @param {string} fieldId - The ID of the form field
+             */
+            static clearFieldError(fieldId) {
+                const field = document.getElementById(fieldId);
+                if (!field) return;
+
+                // Remove error styling
+                field.style.borderColor = '';
+                field.style.boxShadow = '';
+
+                // Hide error message
+                const errorElement = document.getElementById(`${fieldId}-error`);
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                }
+
+                // Remove ARIA attributes
+                field.removeAttribute('aria-invalid');
+                field.removeAttribute('aria-describedby');
+            }
+
+            /**
+             * Shows a warning message to the user
+             * @param {string} message - The warning message to display
+             */
+            static showWarning(message) {
+                // Create warning element if it doesn't exist
+                let warningDiv = document.getElementById('warningMessage');
+                if (!warningDiv) {
+                    warningDiv = document.createElement('div');
+                    warningDiv.id = 'warningMessage';
+                    warningDiv.className = 'warning-message';
+                    warningDiv.style.cssText = `
+                        background: #fff3cd;
+                        color: #856404;
+                        padding: 15px;
+                        border-radius: 6px;
+                        margin-bottom: 20px;
+                        border: 1px solid #ffeaa7;
+                        display: none;
+                    `;
+                    warningDiv.innerHTML = '<strong>Warning:</strong> <span id="warningText"></span>';
+
+                    // Insert after error message
+                    const errorDiv = document.getElementById('errorMessage');
+                    errorDiv.parentNode.insertBefore(warningDiv, errorDiv.nextSibling);
+                }
+
+                const warningText = document.getElementById('warningText');
+                warningText.textContent = message;
+                warningDiv.style.display = 'block';
+
+                // Auto-hide after 8 seconds
+                setTimeout(() => {
+                    warningDiv.style.display = 'none';
+                }, 8000);
+
+                // Log warning
+                console.warn('UI Warning:', message);
+            }
+
+            /**
+             * Validates form inputs and shows appropriate feedback
+             * @returns {Object} Validation result with isValid boolean and errors array
+             */
+            static validateAllInputs() {
+                const errors = [];
+                const csvFile = document.getElementById('csvFile');
+                const startDate = document.getElementById('startDate');
+                const endDate = document.getElementById('endDate');
+
+                // Clear previous field errors
+                this.clearFieldError('csvFile');
+                this.clearFieldError('startDate');
+                this.clearFieldError('endDate');
+
+                // Validate file input
+                if (!csvFile.files || csvFile.files.length === 0) {
+                    this.showFieldError('csvFile', 'Please select a CSV file');
+                    errors.push('No file selected');
+                } else {
+                    const fileValidation = FileHandler.validateFile(csvFile.files[0]);
+                    if (!fileValidation.isValid) {
+                        this.showFieldError('csvFile', fileValidation.error);
+                        errors.push(fileValidation.error);
+                    }
+                }
+
+                // Validate date inputs
+                if (!startDate.value) {
+                    this.showFieldError('startDate', 'Start date is required');
+                    errors.push('Start date is required');
+                }
+
+                if (!endDate.value) {
+                    this.showFieldError('endDate', 'End date is required');
+                    errors.push('End date is required');
+                }
+
+                // Validate date range if both dates are provided
+                if (startDate.value && endDate.value) {
+                    try {
+                        DataProcessor.extractDateInfo(startDate.value, endDate.value);
+                    } catch (error) {
+                        this.showFieldError('endDate', error.message);
+                        errors.push(error.message);
+                    }
+                }
+
+                return {
+                    isValid: errors.length === 0,
+                    errors: errors
+                };
+            }
+
+            /**
+             * Shows a success message to the user
+             * @param {string} message - The success message to display
+             */
+            static showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                const successText = document.getElementById('successText');
+                const errorDiv = document.getElementById('errorMessage');
+
+                successText.textContent = message;
+                successDiv.classList.add('show');
+                errorDiv.classList.remove('show');
+
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    successDiv.classList.remove('show');
+                }, 3000);
+            }
+
+            /**
+             * Hides all messages
+             */
+            static hideMessages() {
+                document.getElementById('errorMessage').classList.remove('show');
+                document.getElementById('successMessage').classList.remove('show');
+            }
+
+        }
+
+        // Unit tests for FileHandler
+        class FileHandlerTests {
+            static runAllTests() {
+                console.log('Running FileHandler unit tests...');
+
+                try {
+                    this.testFileValidation();
+                    this.testFileSizeFormatting();
+                    this.testDownloadCSVFunctionality();
+                    this.testDownloadBrowserCompatibility();
+
+                    console.log('✅ All FileHandler tests passed!');
+                    return true;
+                } catch (error) {
+                    console.error('❌ FileHandler test failed:', error.message);
+                    return false;
+                }
+            }
+
+            static testFileValidation() {
+                // Test null file
+                let result = FileHandler.validateFile(null);
+                this.assertFalse(result.isValid, 'Null file should be invalid');
+                this.assertTrue(result.error.includes('No file selected'), 'Should have appropriate error message');
+
+                // Test mock file objects for different scenarios
+                const createMockFile = (name, size, type) => ({
+                    name: name,
+                    size: size,
+                    type: type
+                });
+
+                // Test valid CSV file
+                result = FileHandler.validateFile(createMockFile('data.csv', 1024, 'text/csv'));
+                this.assertTrue(result.isValid, 'Valid CSV file should pass validation');
+
+                // Test invalid extension
+                result = FileHandler.validateFile(createMockFile('data.pdf', 1024, 'application/pdf'));
+                this.assertFalse(result.isValid, 'PDF file should be invalid');
+                this.assertTrue(result.error.includes('Invalid file type'), 'Should have file type error');
+
+                // Test empty file
+                result = FileHandler.validateFile(createMockFile('data.csv', 0, 'text/csv'));
+                this.assertFalse(result.isValid, 'Empty file should be invalid');
+                this.assertTrue(result.error.includes('empty'), 'Should have empty file error');
+
+                // Test large file
+                result = FileHandler.validateFile(createMockFile('data.csv', 15 * 1024 * 1024, 'text/csv'));
+                this.assertFalse(result.isValid, 'Large file should be invalid');
+                this.assertTrue(result.error.includes('too large'), 'Should have file size error');
+
+                // Test TSV file
+                result = FileHandler.validateFile(createMockFile('data.tsv', 1024, 'text/tab-separated-values'));
+                this.assertTrue(result.isValid, 'TSV file should be valid');
+
+                // Test TXT file
+                result = FileHandler.validateFile(createMockFile('data.txt', 1024, 'text/plain'));
+                this.assertTrue(result.isValid, 'TXT file should be valid');
+            }
+
+            static testFileSizeFormatting() {
+                this.assertEqual(FileHandler.formatFileSize(0), '0 Bytes', 'Zero bytes should format correctly');
+                this.assertEqual(FileHandler.formatFileSize(1024), '1 KB', '1KB should format correctly');
+                this.assertEqual(FileHandler.formatFileSize(1536), '1.5 KB', '1.5KB should format correctly');
+                this.assertEqual(FileHandler.formatFileSize(1048576), '1 MB', '1MB should format correctly');
+                this.assertEqual(FileHandler.formatFileSize(1073741824), '1 GB', '1GB should format correctly');
+            }
+
+            static testDownloadCSVFunctionality() {
+                // Test filename generation
+                this.assertEqual(
+                    this.generateProcessedFileName('data.csv'),
+                    'data_processed.csv',
+                    'Should generate correct filename for .csv file'
+                );
+
+                this.assertEqual(
+                    this.generateProcessedFileName('timesheet_data.csv'),
+                    'timesheet_data_processed.csv',
+                    'Should handle underscores in filename'
+                );
+
+                this.assertEqual(
+                    this.generateProcessedFileName('report-2024.csv'),
+                    'report-2024_processed.csv',
+                    'Should handle hyphens in filename'
+                );
+
+                this.assertEqual(
+                    this.generateProcessedFileName('data.tsv'),
+                    'data_processed.csv',
+                    'Should convert .tsv to .csv extension'
+                );
+
+                this.assertEqual(
+                    this.generateProcessedFileName('data.txt'),
+                    'data_processed.csv',
+                    'Should convert .txt to .csv extension'
+                );
+
+                this.assertEqual(
+                    this.generateProcessedFileName('data'),
+                    'data_processed.csv',
+                    'Should handle files without extension'
+                );
+
+                // Test CSV content formatting
+                const testData = [
+                    { 'Tracked by Name': 'John Doe', 'Billable': 'Yes', 'Sum': '25.5', 'Month': 'January', 'Year': '2024' },
+                    { 'Tracked by Name': 'Jane Smith', 'Billable': 'No', 'Sum': '18.25', 'Month': 'January', 'Year': '2024' }
+                ];
+
+                const csvContent = CSVParser.stringify(testData);
+                this.assertTrue(csvContent.includes('Tracked by Name'), 'CSV should contain headers');
+                this.assertTrue(csvContent.includes('John Doe'), 'CSV should contain data');
+                this.assertTrue(csvContent.includes('January'), 'CSV should contain added Month column');
+                this.assertTrue(csvContent.includes('2024'), 'CSV should contain added Year column');
+
+                // Test that CSV maintains proper formatting
+                const lines = csvContent.split('\n');
+                this.assertEqual(lines.length, 3, 'CSV should have header + 2 data rows');
+
+                // Test header row
+                const headers = lines[0].split(',');
+                this.assertEqual(headers.length, 5, 'Should have 5 columns including Month and Year');
+                this.assertTrue(headers.includes('Month'), 'Should include Month column');
+                this.assertTrue(headers.includes('Year'), 'Should include Year column');
+
+                // Test data integrity
+                const firstDataRow = lines[1].split(',');
+                this.assertEqual(firstDataRow.length, 5, 'Data rows should have 5 columns');
+                this.assertTrue(firstDataRow.includes('John Doe'), 'Should preserve original data');
+                this.assertTrue(firstDataRow.includes('January'), 'Should include month data');
+                this.assertTrue(firstDataRow.includes('2024'), 'Should include year data');
+
+                console.log('✅ Download CSV functionality tests passed');
+            }
+
+            static testDownloadBrowserCompatibility() {
+                // Test that required browser APIs are available
+                this.assertTrue(typeof Blob !== 'undefined', 'Blob API should be available');
+                this.assertTrue(typeof URL !== 'undefined', 'URL API should be available');
+                this.assertTrue(typeof URL.createObjectURL === 'function', 'URL.createObjectURL should be available');
+                this.assertTrue(typeof URL.revokeObjectURL === 'function', 'URL.revokeObjectURL should be available');
+
+                // Test Blob creation with CSV content
+                const testContent = 'Name,Age\nJohn,25\nJane,30';
+                const blob = new Blob([testContent], { type: 'text/csv;charset=utf-8;' });
+
+                this.assertEqual(blob.type, 'text/csv;charset=utf-8;', 'Blob should have correct MIME type');
+                this.assertEqual(blob.size, testContent.length, 'Blob size should match content length');
+
+                // Test URL creation and cleanup
+                const url = URL.createObjectURL(blob);
+                this.assertTrue(url.startsWith('blob:'), 'Should create valid blob URL');
+
+                // Clean up
+                URL.revokeObjectURL(url);
+
+                console.log('✅ Browser compatibility tests passed');
+            }
+
+            // Helper method to test filename generation logic
+            static generateProcessedFileName(originalFileName) {
+                const baseName = originalFileName.replace(/\.[^/.]+$/, '');
+                return `${baseName}_processed.csv`;
+            }
+
+            // Test utility methods
+            static assertEqual(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(`${message}: expected "${expected}", got "${actual}"`);
+                }
+            }
+
+            static assertTrue(condition, message) {
+                if (!condition) {
+                    throw new Error(message);
+                }
+            }
+
+            static assertFalse(condition, message) {
+                if (condition) {
+                    throw new Error(message);
+                }
+            }
+        }
+
+        // DataProcessor class for handling data processing operations
+        class DataProcessor {
+            /**
+             * Adds Month and Year columns to each row based on the provided date range
+             * @param {Array<Object>} data - Array of data objects to process
+             * @param {string} startDate - Start date in YYYY-MM-DD format
+             * @param {string} endDate - End date in YYYY-MM-DD format
+             * @returns {Array<Object>} Processed data array with Month and Year columns added
+             */
+            static addDateColumns(data, startDate, endDate) {
+                if (!Array.isArray(data)) {
+                    throw new Error('Data must be an array');
+                }
+
+                if (!startDate || !endDate) {
+                    throw new Error('Both start date and end date are required');
+                }
+
+                // Parse the dates
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    throw new Error('Invalid date format. Expected YYYY-MM-DD format');
+                }
+
+                if (start > end) {
+                    throw new Error('Start date cannot be after end date');
+                }
+
+                // Extract month and year from the date range
+                // For simplicity, we'll use the start date for the month/year values
+                // This matches the requirement that each row gets the same month and year values
+                const monthName = this.getMonthName(start.getMonth());
+                const year = start.getFullYear().toString();
+
+                // Process each row by adding Month and Year columns
+                const processedData = data.map(row => {
+                    // Create a new object to avoid modifying the original data
+                    const processedRow = { ...row };
+
+                    // Add Month and Year columns
+                    processedRow['Month'] = monthName;
+                    processedRow['Year'] = year;
+
+                    return processedRow;
+                });
+
+                return processedData;
+            }
+
+            /**
+             * Validates that the data contains required columns
+             * @param {Array<Object>} data - Array of data objects to validate
+             * @returns {Object} Validation result with isValid boolean and error message
+             */
+            static validateData(data) {
+                if (!Array.isArray(data)) {
+                    return {
+                        isValid: false,
+                        error: 'Data must be an array'
+                    };
+                }
+
+                if (data.length === 0) {
+                    return {
+                        isValid: false,
+                        error: 'Data array is empty'
+                    };
+                }
+
+                // Check for required columns in the first row
+                const firstRow = data[0];
+                const requiredColumns = ['Tracked by Name', 'Billable', 'Sum'];
+                const availableColumns = Object.keys(firstRow);
+
+                // Check for exact matches first
+                const missingColumns = requiredColumns.filter(col => !availableColumns.includes(col));
+
+                if (missingColumns.length > 0) {
+                    // Try case-insensitive matching
+                    const availableColumnsLower = availableColumns.map(col => col.toLowerCase());
+                    const stillMissing = missingColumns.filter(col =>
+                        !availableColumnsLower.includes(col.toLowerCase())
+                    );
+
+                    if (stillMissing.length > 0) {
+                        return {
+                            isValid: false,
+                            error: `Missing required columns: ${stillMissing.join(', ')}. Available columns: ${availableColumns.join(', ')}`
+                        };
+                    }
+                }
+
+                return {
+                    isValid: true,
+                    error: null
+                };
+            }
+
+            /**
+             * Gets the full month name from a month index (0-11)
+             * @param {number} monthIndex - Month index (0 = January, 11 = December)
+             * @returns {string} Full month name
+             */
+            static getMonthName(monthIndex) {
+                const monthNames = [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+
+                if (monthIndex < 0 || monthIndex > 11) {
+                    throw new Error('Month index must be between 0 and 11');
+                }
+
+                return monthNames[monthIndex];
+            }
+
+            /**
+             * Formats a date range for display
+             * @param {string} startDate - Start date in YYYY-MM-DD format
+             * @param {string} endDate - End date in YYYY-MM-DD format
+             * @returns {string} Formatted date range string
+             */
+            static formatDateRange(startDate, endDate) {
+                if (!startDate || !endDate) {
+                    return 'No date range specified';
+                }
+
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    return 'Invalid date range';
+                }
+
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                const startFormatted = start.toLocaleDateString('en-US', options);
+                const endFormatted = end.toLocaleDateString('en-US', options);
+
+                return `${startFormatted} to ${endFormatted}`;
+            }
+
+            /**
+             * Extracts month and year information from a date range
+             * @param {string} startDate - Start date in YYYY-MM-DD format
+             * @param {string} endDate - End date in YYYY-MM-DD format
+             * @returns {Object} Object containing month name and year
+             */
+            static extractDateInfo(startDate, endDate) {
+                if (!startDate || !endDate) {
+                    throw new Error('Both start date and end date are required');
+                }
+
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    throw new Error('Invalid date format');
+                }
+
+                if (start > end) {
+                    throw new Error('Start date cannot be after end date');
+                }
+
+                return {
+                    monthName: this.getMonthName(start.getMonth()),
+                    year: start.getFullYear().toString(),
+                    formattedRange: this.formatDateRange(startDate, endDate)
+                };
+            }
+        }
+
+        // Unit tests for DataProcessor
+        class DataProcessorTests {
+            static runAllTests() {
+                console.log('Running DataProcessor unit tests...');
+
+                try {
+                    this.testAddDateColumns();
+                    this.testDataValidation();
+                    this.testMonthNameGeneration();
+                    this.testDateRangeFormatting();
+                    this.testDateInfoExtraction();
+                    this.testErrorHandling();
+
+                    console.log('✅ All DataProcessor tests passed!');
+                    return true;
+                } catch (error) {
+                    console.error('❌ DataProcessor test failed:', error.message);
+                    return false;
+                }
+            }
+
+            static testAddDateColumns() {
+                const sampleData = [
+                    { 'Tracked by Name': 'John Doe', 'Billable': 'Yes', 'Sum': '25.5' },
+                    { 'Tracked by Name': 'Jane Smith', 'Billable': 'No', 'Sum': '18.25' }
+                ];
+
+                const result = DataProcessor.addDateColumns(sampleData, '2024-01-15', '2024-01-31');
+
+                this.assertEqual(result.length, 2, 'Should preserve row count');
+                this.assertEqual(result[0]['Month'], 'January', 'Should add correct month');
+                this.assertEqual(result[0]['Year'], '2024', 'Should add correct year');
+                this.assertEqual(result[1]['Month'], 'January', 'All rows should have same month');
+                this.assertEqual(result[1]['Year'], '2024', 'All rows should have same year');
+
+                // Verify original data is preserved
+                this.assertEqual(result[0]['Tracked by Name'], 'John Doe', 'Should preserve original data');
+                this.assertEqual(result[1]['Billable'], 'No', 'Should preserve original data');
+            }
+
+            static testDataValidation() {
+                const validData = [
+                    { 'Tracked by Name': 'John', 'Billable': 'Yes', 'Sum': '25.5' }
+                ];
+
+                let result = DataProcessor.validateData(validData);
+                this.assertTrue(result.isValid, 'Valid data should pass validation');
+
+                const invalidData = [
+                    { 'Name': 'John', 'Amount': '25.5' }
+                ];
+
+                result = DataProcessor.validateData(invalidData);
+                this.assertFalse(result.isValid, 'Invalid data should fail validation');
+                this.assertTrue(result.error.includes('Missing required columns'), 'Should have appropriate error message');
+
+                // Test empty array
+                result = DataProcessor.validateData([]);
+                this.assertFalse(result.isValid, 'Empty array should fail validation');
+
+                // Test non-array input
+                result = DataProcessor.validateData('not an array');
+                this.assertFalse(result.isValid, 'Non-array should fail validation');
+            }
+
+            static testMonthNameGeneration() {
+                this.assertEqual(DataProcessor.getMonthName(0), 'January', 'January should be index 0');
+                this.assertEqual(DataProcessor.getMonthName(1), 'February', 'February should be index 1');
+                this.assertEqual(DataProcessor.getMonthName(11), 'December', 'December should be index 11');
+
+                // Test error handling
+                try {
+                    DataProcessor.getMonthName(-1);
+                    throw new Error('Should have thrown error for negative index');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Month index must be between 0 and 11'), 'Should throw appropriate error');
+                }
+
+                try {
+                    DataProcessor.getMonthName(12);
+                    throw new Error('Should have thrown error for index > 11');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Month index must be between 0 and 11'), 'Should throw appropriate error');
+                }
+            }
+
+            static testDateRangeFormatting() {
+                const formatted = DataProcessor.formatDateRange('2024-01-15', '2024-01-31');
+                this.assertTrue(formatted.includes('January'), 'Should include month name');
+                this.assertTrue(formatted.includes('2024'), 'Should include year');
+                this.assertTrue(formatted.includes('to'), 'Should include "to" separator');
+
+                // Test invalid dates
+                const invalid = DataProcessor.formatDateRange('invalid', 'also-invalid');
+                this.assertEqual(invalid, 'Invalid date range', 'Should handle invalid dates');
+
+                // Test missing dates
+                const missing = DataProcessor.formatDateRange('', '');
+                this.assertEqual(missing, 'No date range specified', 'Should handle missing dates');
+            }
+
+            static testDateInfoExtraction() {
+                const dateInfo = DataProcessor.extractDateInfo('2024-03-15', '2024-03-31');
+
+                this.assertEqual(dateInfo.monthName, 'March', 'Should extract correct month');
+                this.assertEqual(dateInfo.year, '2024', 'Should extract correct year');
+                this.assertTrue(dateInfo.formattedRange.includes('March'), 'Should include formatted range');
+
+                // Test different months
+                const febInfo = DataProcessor.extractDateInfo('2024-02-01', '2024-02-29');
+                this.assertEqual(febInfo.monthName, 'February', 'Should handle February correctly');
+            }
+
+            static testErrorHandling() {
+                const sampleData = [
+                    { 'Tracked by Name': 'John', 'Billable': 'Yes', 'Sum': '25.5' }
+                ];
+
+                // Test missing dates
+                try {
+                    DataProcessor.addDateColumns(sampleData, '', '2024-01-31');
+                    throw new Error('Should have thrown error for missing start date');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('required'), 'Should throw appropriate error');
+                }
+
+                // Test invalid date format
+                try {
+                    DataProcessor.addDateColumns(sampleData, 'invalid-date', '2024-01-31');
+                    throw new Error('Should have thrown error for invalid date');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Invalid date format'), 'Should throw appropriate error');
+                }
+
+                // Test start date after end date
+                try {
+                    DataProcessor.addDateColumns(sampleData, '2024-01-31', '2024-01-15');
+                    throw new Error('Should have thrown error for invalid date range');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Start date cannot be after end date'), 'Should throw appropriate error');
+                }
+
+                // Test non-array data
+                try {
+                    DataProcessor.addDateColumns('not an array', '2024-01-15', '2024-01-31');
+                    throw new Error('Should have thrown error for non-array data');
+                } catch (error) {
+                    this.assertTrue(error.message.includes('Data must be an array'), 'Should throw appropriate error');
+                }
+            }
+
+            // Test utility methods
+            static assertEqual(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(`${message}: expected "${expected}", got "${actual}"`);
+                }
+            }
+
+            static assertTrue(condition, message) {
+                if (!condition) {
+                    throw new Error(message);
+                }
+            }
+
+            static assertFalse(condition, message) {
+                if (condition) {
+                    throw new Error(message);
+                }
+            }
+        }
+
+        // Run tests when page loads (for development/testing purposes)
+        document.addEventListener('DOMContentLoaded', function () {
+            // Run CSV parser tests
+            CSVParserTests.runAllTests();
+
+            // Run FileHandler tests
+            FileHandlerTests.runAllTests();
+
+            // Run DataProcessor tests
+            DataProcessorTests.runAllTests();
+
+            // Test with sample data format
+            const sampleTSV = `Tracked by Name\tBillable\tSum
+Aimee Pieterse\tNo\t18.479999999999997
+Billy Einkamerer\tYes\t0.75`;
+
+            try {
+                const parsed = CSVParser.parse(sampleTSV);
+                console.log('✅ Sample TSV data parsed successfully:', parsed);
+
+                const stringified = CSVParser.stringify(parsed);
+                console.log('✅ Sample data round-trip successful');
+            } catch (error) {
+                console.error('❌ Sample data parsing failed:', error.message);
+            }
+
+            console.log('Timesheet Data Preparation Tool loaded successfully');
+
+            // Initialize form validation and file handling
+            initializeFileHandling();
+
+            // Initialize download handling
+            initializeDownloadHandling();
+        });
+
+        /**
+         * Initializes file handling and form validation
+         */
+        function initializeFileHandling() {
+            const csvFile = document.getElementById('csvFile');
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            const processBtn = document.getElementById('processBtn');
+
+            let selectedFile = null;
+            let isFileValid = false;
+
+            /**
+             * Validates the entire form and enables/disables the process button
+             */
+            function validateForm() {
+                const hasValidFile = selectedFile && isFileValid;
+
+                // Enhanced date validation using DataProcessor
+                const dateValidation = validateDateInputs();
+                const datesValid = dateValidation.isValid;
+
+                // Enable process button only if both file and dates are valid
+                processBtn.disabled = !(hasValidFile && datesValid);
+
+                // Clear any previous field errors
+                UIHelpers.clearFieldError('csvFile');
+                UIHelpers.clearFieldError('startDate');
+                UIHelpers.clearFieldError('endDate');
+
+                // Update button text and show field-specific validation messages
+                if (processBtn.disabled) {
+                    if (!hasValidFile) {
+                        processBtn.textContent = 'Select Valid CSV File';
+                        if (selectedFile) {
+                            UIHelpers.showFieldError('csvFile', 'Please select a valid CSV file with required columns');
+                        } else {
+                            UIHelpers.showFieldError('csvFile', 'Please select a CSV file');
+                        }
+                    } else if (!datesValid) {
+                        if (dateValidation.error.includes('required')) {
+                            processBtn.textContent = 'Select Date Range';
+                            if (!startDate.value) {
+                                UIHelpers.showFieldError('startDate', 'Start date is required');
+                            }
+                            if (!endDate.value) {
+                                UIHelpers.showFieldError('endDate', 'End date is required');
+                            }
+                        } else {
+                            processBtn.textContent = 'Fix Date Range';
+                            UIHelpers.showFieldError('endDate', dateValidation.error);
+                        }
+                    } else {
+                        processBtn.textContent = 'Process Data';
+                    }
+                } else {
+                    processBtn.textContent = 'Process Data';
+                    // Clear any lingering error messages when form is valid
+                    UIHelpers.hideMessages();
+                }
+
+                // Store date info for later use during processing
+                if (datesValid && dateValidation.dateInfo) {
+                    processBtn.dataset.monthName = dateValidation.dateInfo.monthName;
+                    processBtn.dataset.year = dateValidation.dateInfo.year;
+                    processBtn.dataset.formattedRange = dateValidation.dateInfo.formattedRange;
+                }
+            }
+
+            /**
+             * Handles file selection and validation
+             */
+            function handleFileSelection() {
+                const file = csvFile.files[0];
+                selectedFile = file;
+
+                // Hide previous messages
+                UIHelpers.hideMessages();
+
+                if (!file) {
+                    isFileValid = false;
+                    UIHelpers.updateFileInfo(null);
+                    validateForm();
+                    return;
+                }
+
+                // Update file info display
+                UIHelpers.updateFileInfo(file);
+
+                // Validate the file
+                const validation = FileHandler.validateFile(file);
+                isFileValid = validation.isValid;
+
+                if (!validation.isValid) {
+                    UIHelpers.showError(validation.error);
+                    selectedFile = null;
+                    isFileValid = false;
+                } else {
+                    UIHelpers.showSuccess(`File "${file.name}" selected successfully`);
+
+                    // Additional validation: try to read a small portion to verify it's readable
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = e.target.result.substring(0, 1000); // First 1000 characters
+
+                        // Basic check for CSV-like content
+                        if (preview.trim().length === 0) {
+                            UIHelpers.showError('File appears to be empty');
+                            isFileValid = false;
+                            selectedFile = null;
+                            validateForm();
+                            return;
+                        }
+
+                        // Check for common CSV patterns
+                        const lines = preview.split('\n');
+                        if (lines.length < 2) {
+                            UIHelpers.showError('File must contain at least a header row and one data row');
+                            isFileValid = false;
+                            selectedFile = null;
+                            validateForm();
+                            return;
+                        }
+
+                        // Enhanced column validation with better error messages
+                        try {
+                            // Try to parse the header line to get actual column names
+                            const delimiter = CSVParser.detectDelimiter(lines[0]);
+                            const headerColumns = CSVParser.parseCSVLine(lines[0], delimiter);
+                            const requiredColumns = ['Tracked by Name', 'Billable', 'Sum'];
+
+                            // Check for exact matches first
+                            const exactMatches = requiredColumns.filter(col =>
+                                headerColumns.includes(col)
+                            );
+
+                            // If not all exact matches, try case-insensitive matching
+                            if (exactMatches.length < requiredColumns.length) {
+                                const headerColumnsLower = headerColumns.map(col => col.toLowerCase().trim());
+                                const requiredColumnsLower = requiredColumns.map(col => col.toLowerCase());
+
+                                const caseInsensitiveMatches = requiredColumnsLower.filter(col =>
+                                    headerColumnsLower.includes(col)
+                                );
+
+                                if (caseInsensitiveMatches.length < requiredColumns.length) {
+                                    const missingColumns = requiredColumns.filter(col =>
+                                        !headerColumnsLower.includes(col.toLowerCase())
+                                    );
+
+                                    UIHelpers.showError(
+                                        `Missing required columns: ${missingColumns.join(', ')}.\n\n` +
+                                        `Expected: "Tracked by Name", "Billable", "Sum"\n` +
+                                        `Found: ${headerColumns.join(', ')}\n\n` +
+                                        `Please ensure your CSV file has the exact column names (case-sensitive).`
+                                    );
+                                    isFileValid = false;
+                                    selectedFile = null;
+                                } else if (exactMatches.length < requiredColumns.length) {
+                                    // Case mismatch warning
+                                    UIHelpers.showWarning(
+                                        `Column names have case differences. Expected exact case: "Tracked by Name", "Billable", "Sum". ` +
+                                        `Processing will continue but exact case matching is recommended.`
+                                    );
+                                    isFileValid = true;
+                                    UIHelpers.showSuccess(`CSV file with required columns detected (with case differences)`);
+                                } else {
+                                    isFileValid = true;
+                                    UIHelpers.showSuccess(`Valid CSV file with required columns detected`);
+                                }
+                            } else {
+                                isFileValid = true;
+                                UIHelpers.showSuccess(`Valid CSV file with required columns detected`);
+                            }
+
+                            // Additional validation: check for reasonable number of columns
+                            if (isFileValid && headerColumns.length > 20) {
+                                UIHelpers.showWarning(
+                                    `File has ${headerColumns.length} columns. Only "Tracked by Name", "Billable", and "Sum" ` +
+                                    `will be processed along with the added Month and Year columns.`
+                                );
+                            }
+
+                            // Check for duplicate column names
+                            const duplicates = headerColumns.filter((col, index) =>
+                                headerColumns.indexOf(col) !== index
+                            );
+                            if (duplicates.length > 0) {
+                                UIHelpers.showWarning(
+                                    `Duplicate column names detected: ${[...new Set(duplicates)].join(', ')}. ` +
+                                    `This may cause processing issues.`
+                                );
+                            }
+
+                        } catch (headerParseError) {
+                            UIHelpers.showError(
+                                `Unable to parse CSV header row: ${headerParseError.message}. ` +
+                                `Please ensure the file is properly formatted.`
+                            );
+                            isFileValid = false;
+                            selectedFile = null;
+                        }
+
+                        validateForm();
+                    };
+
+                    reader.onerror = function () {
+                        UIHelpers.showError('Error reading file. Please try again.');
+                        isFileValid = false;
+                        selectedFile = null;
+                        validateForm();
+                    };
+
+                    reader.readAsText(file.slice(0, 1000)); // Read first 1000 bytes for validation
+                }
+
+                validateForm();
+            }
+
+            /**
+             * Handles date input changes with enhanced validation and formatting
+             */
+            function handleDateChange() {
+                // Clear any previous date-related errors
+                UIHelpers.hideMessages();
+
+                // Validate date inputs if both are provided
+                if (startDate.value && endDate.value) {
+                    try {
+                        // Extract date information and validate
+                        const dateInfo = DataProcessor.extractDateInfo(startDate.value, endDate.value);
+
+                        // Show success message with extracted date information
+                        UIHelpers.showSuccess(`Date range selected: ${dateInfo.formattedRange} (${dateInfo.monthName} ${dateInfo.year})`);
+
+                        // Update any preview elements if they exist
+                        updateDatePreview(dateInfo);
+
+                    } catch (error) {
+                        // Show error for invalid date range
+                        UIHelpers.showError(error.message);
+                    }
+                } else if (startDate.value || endDate.value) {
+                    // Show informational message when only one date is selected
+                    const selectedDateValue = startDate.value || endDate.value;
+                    const selectedDateObj = new Date(selectedDateValue);
+                    const monthName = DataProcessor.getMonthName(selectedDateObj.getMonth());
+                    const year = selectedDateObj.getFullYear();
+
+                    UIHelpers.showSuccess(`${startDate.value ? 'Start' : 'End'} date selected: ${monthName} ${selectedDateObj.getDate()}, ${year}`);
+                }
+
+                validateForm();
+            }
+
+            /**
+             * Updates date preview information in the UI
+             * @param {Object} dateInfo - Date information object from DataProcessor.extractDateInfo
+             */
+            function updateDatePreview(dateInfo) {
+                // Update any existing preview elements
+                const monthPreview = document.getElementById('monthPreview');
+                const yearPreview = document.getElementById('yearPreview');
+                const dateRangePreview = document.getElementById('dateRangePreview');
+
+                if (monthPreview) monthPreview.textContent = dateInfo.monthName;
+                if (yearPreview) yearPreview.textContent = dateInfo.year;
+                if (dateRangePreview) dateRangePreview.textContent = dateInfo.formattedRange;
+            }
+
+            /**
+             * Validates date inputs with enhanced error messages
+             * @returns {Object} Validation result with isValid boolean and error message
+             */
+            function validateDateInputs() {
+                const startValue = startDate.value;
+                const endValue = endDate.value;
+
+                // Check for missing dates
+                if (!startValue && !endValue) {
+                    return {
+                        isValid: false,
+                        error: 'Please select both start and end dates for the timesheet period'
+                    };
+                }
+
+                if (!startValue) {
+                    return {
+                        isValid: false,
+                        error: 'Start date is required'
+                    };
+                }
+
+                if (!endValue) {
+                    return {
+                        isValid: false,
+                        error: 'End date is required'
+                    };
+                }
+
+                // Validate date format
+                const startDateObj = new Date(startValue);
+                const endDateObj = new Date(endValue);
+                const today = new Date();
+                today.setHours(23, 59, 59, 999); // End of today
+
+                if (isNaN(startDateObj.getTime())) {
+                    return {
+                        isValid: false,
+                        error: 'Invalid start date format. Please use the date picker or YYYY-MM-DD format.'
+                    };
+                }
+
+                if (isNaN(endDateObj.getTime())) {
+                    return {
+                        isValid: false,
+                        error: 'Invalid end date format. Please use the date picker or YYYY-MM-DD format.'
+                    };
+                }
+
+                // Check for future dates
+                if (startDateObj > today) {
+                    return {
+                        isValid: false,
+                        error: 'Start date cannot be in the future. Please select a date from today or earlier.'
+                    };
+                }
+
+                if (endDateObj > today) {
+                    return {
+                        isValid: false,
+                        error: 'End date cannot be in the future. Please select a date from today or earlier.'
+                    };
+                }
+
+                // Check date range logic
+                if (startDateObj > endDateObj) {
+                    return {
+                        isValid: false,
+                        error: 'Start date must be before or equal to end date. Please adjust your date selection.'
+                    };
+                }
+
+                // Check for reasonable date range (not too far in the past)
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 2);
+
+                if (startDateObj < oneYearAgo) {
+                    UIHelpers.showWarning(
+                        `The selected start date is more than 2 years ago. ` +
+                        `Please verify this is correct for your timesheet data.`
+                    );
+                }
+
+                // Check for very long date ranges
+                const daysDifference = Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
+                if (daysDifference > 365) {
+                    UIHelpers.showWarning(
+                        `The selected date range spans ${daysDifference} days (over a year). ` +
+                        `Please verify this is correct for your timesheet period.`
+                    );
+                }
+
+                try {
+                    // Use DataProcessor to extract and validate date information
+                    const dateInfo = DataProcessor.extractDateInfo(startValue, endValue);
+
+                    // Additional validation: warn about cross-month ranges
+                    if (startDateObj.getMonth() !== endDateObj.getMonth() || startDateObj.getFullYear() !== endDateObj.getFullYear()) {
+                        UIHelpers.showWarning(
+                            `The date range spans multiple months. The Month and Year columns will be set to ` +
+                            `"${dateInfo.monthName} ${dateInfo.year}" (based on the start date) for all rows.`
+                        );
+                    }
+
+                    return {
+                        isValid: true,
+                        error: null,
+                        dateInfo: dateInfo
+                    };
+                } catch (error) {
+                    return {
+                        isValid: false,
+                        error: `Date processing error: ${error.message}`
+                    };
+                }
+            }
+
+            // Event listeners
+            csvFile.addEventListener('change', handleFileSelection);
+            startDate.addEventListener('change', handleDateChange);
+            endDate.addEventListener('change', handleDateChange);
+
+            // Add input event listeners for real-time validation
+            startDate.addEventListener('input', handleDateChange);
+            endDate.addEventListener('input', handleDateChange);
+
+            // Process button event listener
+            processBtn.addEventListener('click', handleDataProcessing);
+
+            // Set default date range to current month if no dates are set
+            initializeDateInputs();
+
+            // Initial validation
+            validateForm();
+        }
+
+        /**
+         * Handles the data processing workflow
+         */
+        async function handleDataProcessing() {
+            const processBtn = document.getElementById('processBtn');
+            const csvFile = document.getElementById('csvFile');
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+
+            try {
+                // Comprehensive input validation before processing
+                UIHelpers.hideMessages();
+                const validation = UIHelpers.validateAllInputs();
+
+                if (!validation.isValid) {
+                    UIHelpers.showError(`Please fix the following issues: ${validation.errors.join(', ')}`);
+                    return;
+                }
+
+                // Show processing status
+                UIHelpers.showProcessing('Reading file...');
+
+                // Get the selected file
+                const file = csvFile.files[0];
+
+                // Additional file size check for large files
+                const maxSize = 50 * 1024 * 1024; // 50MB limit
+                if (file.size > maxSize) {
+                    throw new Error('File is too large. Please select a file smaller than 50MB for optimal performance.');
+                }
+
+                // Read the file content with timeout
+                let csvContent;
+                try {
+                    UIHelpers.showProcessing('Reading file content...');
+                    csvContent = await Promise.race([
+                        FileHandler.readFile(file),
+                        new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error('File reading timeout. The file may be too large or corrupted.')), 30000)
+                        )
+                    ]);
+                } catch (fileError) {
+                    if (fileError.message.includes('timeout')) {
+                        throw fileError;
+                    }
+                    throw new Error(`Failed to read file: ${fileError.message}. Please ensure the file is not corrupted and try again.`);
+                }
+
+                // Validate file content
+                if (!csvContent || csvContent.trim().length === 0) {
+                    throw new Error('The selected file is empty. Please choose a file with CSV data.');
+                }
+
+                // Check for minimum content requirements
+                const lines = csvContent.trim().split('\n');
+                if (lines.length < 2) {
+                    throw new Error('The CSV file must contain at least a header row and one data row.');
+                }
+
+                // Parse the CSV data with enhanced error handling
+                let parsedData;
+                try {
+                    UIHelpers.showProcessing('Parsing CSV data...');
+                    parsedData = CSVParser.parse(csvContent);
+                } catch (parseError) {
+                    // Provide more specific error messages for common CSV issues
+                    let errorMessage = parseError.message;
+
+                    if (errorMessage.includes('line')) {
+                        errorMessage += ' Please check for unmatched quotes, extra commas, or special characters in your CSV file.';
+                    } else if (errorMessage.includes('headers')) {
+                        errorMessage += ' Please ensure your CSV file has a proper header row.';
+                    } else if (errorMessage.includes('Empty CSV')) {
+                        errorMessage = 'The CSV file appears to be empty or contains only whitespace.';
+                    }
+
+                    throw new Error(`CSV parsing failed: ${errorMessage}`);
+                }
+
+                // Validate the parsed data structure
+                const dataValidation = DataProcessor.validateData(parsedData);
+                if (!dataValidation.isValid) {
+                    // Provide helpful suggestions for missing columns
+                    let errorMessage = dataValidation.error;
+                    if (errorMessage.includes('Missing required columns')) {
+                        errorMessage += '\n\nTip: Please ensure your CSV file contains columns named exactly "Tracked by Name", "Billable", and "Sum" (case-sensitive).';
+
+                        // Show available columns for debugging
+                        if (parsedData.length > 0) {
+                            const availableColumns = Object.keys(parsedData[0]);
+                            errorMessage += `\n\nYour file contains these columns: ${availableColumns.join(', ')}`;
+                        }
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                // Check for reasonable data size
+                if (parsedData.length === 0) {
+                    throw new Error('No data rows found in the CSV file. Please ensure the file contains data beyond the header row.');
+                }
+
+                if (parsedData.length > 10000) {
+                    UIHelpers.showWarning(`Processing ${parsedData.length} rows. This may take a moment...`);
+                }
+
+                // Process the data by adding date columns
+                let processedData;
+                try {
+                    UIHelpers.showProcessing('Adding date columns...');
+                    processedData = DataProcessor.addDateColumns(
+                        parsedData,
+                        startDate.value,
+                        endDate.value
+                    );
+                } catch (dateError) {
+                    throw new Error(`Date processing failed: ${dateError.message}. Please check your date range selection.`);
+                }
+
+                // Validate processed data
+                if (!processedData || processedData.length === 0) {
+                    throw new Error('Data processing resulted in empty dataset. Please check your input file.');
+                }
+
+                // Verify that date columns were added correctly
+                const sampleRow = processedData[0];
+                if (!sampleRow.Month || !sampleRow.Year) {
+                    throw new Error('Failed to add date columns to the data. Please try again.');
+                }
+
+                // Store processed data for download
+                window.processedData = processedData;
+                window.originalFileName = file.name;
+
+                // Generate and display preview
+                try {
+                    UIHelpers.showProcessing('Generating preview...');
+                    generateDataPreview(processedData, startDate.value, endDate.value);
+                } catch (previewError) {
+                    // Preview generation failure shouldn't stop the process
+                    console.warn('Preview generation failed:', previewError);
+                    UIHelpers.showWarning('Data processed successfully, but preview generation failed. You can still download the processed file.');
+                }
+
+                // Show success message with detailed information
+                const dateInfo = DataProcessor.extractDateInfo(startDate.value, endDate.value);
+                UIHelpers.showSuccess(
+                    `Successfully processed ${processedData.length} rows of data. ` +
+                    `Added "${dateInfo.monthName} ${dateInfo.year}" to each row.`
+                );
+
+                // Show download section
+                showDownloadSection(file.name);
+
+            } catch (error) {
+                // Enhanced error handling with user-friendly messages
+                let userMessage = error.message;
+
+                // Categorize errors and provide helpful guidance
+                if (error.message.includes('No file selected')) {
+                    userMessage = 'Please select a CSV file before processing.';
+                } else if (error.message.includes('timeout')) {
+                    userMessage = 'File processing timed out. Please try with a smaller file or check your internet connection.';
+                } else if (error.message.includes('memory') || error.message.includes('out of memory')) {
+                    userMessage = 'The file is too large to process. Please try with a smaller file (under 10MB recommended).';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    userMessage = 'Network error occurred. Please check your connection and try again.';
+                } else if (error.message.includes('permission') || error.message.includes('access')) {
+                    userMessage = 'Unable to access the file. Please ensure the file is not open in another application and try again.';
+                }
+
+                UIHelpers.showError(userMessage);
+                console.error('Data processing error:', {
+                    message: error.message,
+                    stack: error.stack,
+                    timestamp: new Date().toISOString(),
+                    fileInfo: csvFile.files[0] ? {
+                        name: csvFile.files[0].name,
+                        size: csvFile.files[0].size,
+                        type: csvFile.files[0].type
+                    } : null,
+                    dateRange: {
+                        start: startDate.value,
+                        end: endDate.value
+                    }
+                });
+
+                // Clear any stored data on error
+                window.processedData = null;
+                window.originalFileName = null;
+
+                // Hide preview and download sections on error
+                const previewSection = document.getElementById('previewSection');
+                const downloadSection = document.getElementById('downloadSection');
+                previewSection.classList.remove('show');
+                downloadSection.classList.remove('show');
+
+            } finally {
+                // Always restore button state
+                UIHelpers.hideProcessing();
+            }
+        }
+
+        /**
+         * Generates and displays the data preview table
+         * @param {Array<Object>} processedData - The processed data array
+         * @param {string} startDate - Start date in YYYY-MM-DD format
+         * @param {string} endDate - End date in YYYY-MM-DD format
+         */
+        function generateDataPreview(processedData, startDate, endDate) {
+            const previewSection = document.getElementById('previewSection');
+            const previewTable = document.getElementById('previewTable');
+            const summaryInfo = document.getElementById('summaryInfo');
+
+            // Update summary information
+            updateSummaryInfo(processedData, startDate, endDate);
+
+            // Generate table headers
+            if (processedData.length > 0) {
+                const headers = Object.keys(processedData[0]);
+                generateTableHeaders(previewTable, headers);
+
+                // Generate table rows (first 15 rows as specified in requirements)
+                const previewRows = processedData.slice(0, 15);
+                generateTableRows(previewTable, previewRows, headers);
+            }
+
+            // Show the preview section
+            previewSection.classList.add('show');
+
+            // Scroll to preview section
+            previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        /**
+         * Updates the summary information display
+         * @param {Array<Object>} processedData - The processed data array
+         * @param {string} startDate - Start date in YYYY-MM-DD format
+         * @param {string} endDate - End date in YYYY-MM-DD format
+         */
+        function updateSummaryInfo(processedData, startDate, endDate) {
+            const totalRows = document.getElementById('totalRows');
+            const dateRange = document.getElementById('dateRange');
+            const monthAdded = document.getElementById('monthAdded');
+            const yearAdded = document.getElementById('yearAdded');
+
+            // Update total rows
+            totalRows.textContent = processedData.length;
+
+            // Update date range
+            const formattedRange = DataProcessor.formatDateRange(startDate, endDate);
+            dateRange.textContent = formattedRange;
+
+            // Update month and year information
+            if (processedData.length > 0) {
+                monthAdded.textContent = processedData[0]['Month'] || 'N/A';
+                yearAdded.textContent = processedData[0]['Year'] || 'N/A';
+            } else {
+                monthAdded.textContent = 'N/A';
+                yearAdded.textContent = 'N/A';
+            }
+        }
+
+        /**
+         * Generates table headers for the preview table
+         * @param {HTMLTableElement} table - The table element
+         * @param {Array<string>} headers - Array of header names
+         */
+        function generateTableHeaders(table, headers) {
+            const thead = table.querySelector('thead');
+            const headerRow = thead.querySelector('tr');
+
+            // Clear existing headers
+            headerRow.innerHTML = '';
+
+            // Add headers
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+
+                // Add special styling for added columns
+                if (header === 'Month' || header === 'Year') {
+                    th.style.backgroundColor = '#27ae60';
+                    th.style.color = 'white';
+                    th.title = 'Added by processing';
+                }
+
+                headerRow.appendChild(th);
+            });
+        }
+
+        /**
+         * Generates table rows for the preview table
+         * @param {HTMLTableElement} table - The table element
+         * @param {Array<Object>} rows - Array of row data objects
+         * @param {Array<string>} headers - Array of header names
+         */
+        function generateTableRows(table, rows, headers) {
+            const tbody = table.querySelector('tbody');
+
+            // Clear existing rows
+            tbody.innerHTML = '';
+
+            // Add data rows
+            rows.forEach((rowData, index) => {
+                const tr = document.createElement('tr');
+
+                // Add alternating row colors
+                if (index % 2 === 1) {
+                    tr.style.backgroundColor = '#f8f9fa';
+                }
+
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    const cellValue = rowData[header] || '';
+                    td.textContent = cellValue;
+
+                    // Add special styling for added columns
+                    if (header === 'Month' || header === 'Year') {
+                        td.style.fontWeight = 'bold';
+                        td.style.color = '#27ae60';
+                        td.title = 'Added by processing';
+                    }
+
+                    // Add special formatting for numeric values
+                    if (header === 'Sum' && cellValue) {
+                        const numValue = parseFloat(cellValue);
+                        if (!isNaN(numValue)) {
+                            td.textContent = numValue.toFixed(2);
+                            td.style.textAlign = 'right';
+                        }
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        /**
+         * Shows the download section with proper filename
+         * @param {string} originalFileName - The original file name
+         */
+        function showDownloadSection(originalFileName) {
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadFileName = document.getElementById('downloadFileName');
+
+            // Generate processed filename
+            const baseName = originalFileName.replace(/\.[^/.]+$/, ''); // Remove extension
+            const processedFileName = `${baseName}_processed.csv`;
+
+            downloadFileName.textContent = processedFileName;
+            downloadSection.classList.add('show');
+        }
+
+        /**
+         * Initializes date inputs with helpful defaults and constraints
+         */
+        function initializeDateInputs() {
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+
+            // Set max date to today to prevent future dates
+            const today = new Date();
+            const todayString = today.toISOString().split('T')[0];
+            startDate.max = todayString;
+            endDate.max = todayString;
+
+            // Set default date range to current month if no values are set
+            if (!startDate.value && !endDate.value) {
+                const currentMonth = today.getMonth();
+                const currentYear = today.getFullYear();
+
+                // First day of current month
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const firstDayString = firstDay.toISOString().split('T')[0];
+
+                // Last day of current month
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                const lastDayString = lastDay.toISOString().split('T')[0];
+
+                startDate.value = firstDayString;
+                endDate.value = lastDayString;
+
+                // Trigger change event to update validation
+                const changeEvent = new Event('change', { bubbles: true });
+                startDate.dispatchEvent(changeEvent);
+            }
+        }
+
+        /**
+         * Initializes download functionality
+         */
+        function initializeDownloadHandling() {
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            downloadBtn.addEventListener('click', function () {
+                try {
+                    // Comprehensive validation before download
+                    if (!window.processedData) {
+                        throw new Error('No processed data available. Please process a CSV file first.');
+                    }
+
+                    if (!window.originalFileName) {
+                        throw new Error('Original filename not found. Please process the file again.');
+                    }
+
+                    if (!Array.isArray(window.processedData) || window.processedData.length === 0) {
+                        throw new Error('Processed data is empty or invalid. Please process the file again.');
+                    }
+
+                    // Validate that processed data has the expected structure
+                    const sampleRow = window.processedData[0];
+                    const requiredColumns = ['Tracked by Name', 'Billable', 'Sum', 'Month', 'Year'];
+                    const missingColumns = requiredColumns.filter(col => !(col in sampleRow));
+
+                    if (missingColumns.length > 0) {
+                        throw new Error(`Processed data is missing required columns: ${missingColumns.join(', ')}. Please process the file again.`);
+                    }
+
+                    // Show processing status for large datasets
+                    if (window.processedData.length > 1000) {
+                        UIHelpers.showProcessing('Preparing download...');
+                    }
+
+                    // Convert processed data back to CSV with error handling
+                    let csvContent;
+                    try {
+                        csvContent = CSVParser.stringify(window.processedData);
+                    } catch (stringifyError) {
+                        throw new Error(`Failed to convert data to CSV format: ${stringifyError.message}`);
+                    }
+
+                    // Validate CSV content
+                    if (!csvContent || csvContent.trim().length === 0) {
+                        throw new Error('Generated CSV content is empty. Please try processing the file again.');
+                    }
+
+                    // Check for reasonable file size (warn if very large)
+                    const estimatedSize = new Blob([csvContent]).size;
+                    const maxRecommendedSize = 100 * 1024 * 1024; // 100MB
+
+                    if (estimatedSize > maxRecommendedSize) {
+                        const sizeMB = Math.round(estimatedSize / (1024 * 1024));
+                        UIHelpers.showWarning(
+                            `The generated file is quite large (${sizeMB}MB). ` +
+                            `Download may take some time depending on your browser and system performance.`
+                        );
+                    }
+
+                    // Attempt download with enhanced error handling
+                    try {
+                        FileHandler.downloadCSV(csvContent, window.originalFileName);
+
+                        // Success feedback with file information
+                        const baseName = window.originalFileName.replace(/\.[^/.]+$/, '');
+                        const processedFileName = `${baseName}_processed.csv`;
+                        const rowCount = window.processedData.length;
+
+                        UIHelpers.showSuccess(
+                            `Successfully downloaded "${processedFileName}" with ${rowCount} rows of processed data.`
+                        );
+
+                        // Log successful download for analytics
+                        console.log('Download completed:', {
+                            originalFile: window.originalFileName,
+                            processedFile: processedFileName,
+                            rowCount: rowCount,
+                            fileSize: estimatedSize,
+                            timestamp: new Date().toISOString()
+                        });
+
+                    } catch (downloadError) {
+                        // Handle browser-specific download issues
+                        if (downloadError.message.includes('security') || downloadError.message.includes('permission')) {
+                            throw new Error(
+                                'Download blocked by browser security settings. Please check your browser\'s download permissions and try again.'
+                            );
+                        } else if (downloadError.message.includes('quota') || downloadError.message.includes('storage')) {
+                            throw new Error(
+                                'Insufficient storage space for download. Please free up disk space and try again.'
+                            );
+                        } else {
+                            throw new Error(`Download failed: ${downloadError.message}. Please try again or use a different browser.`);
+                        }
+                    }
+
+                } catch (error) {
+                    // Enhanced error reporting with user guidance
+                    let userMessage = error.message;
+
+                    // Provide specific guidance based on error type
+                    if (error.message.includes('No processed data')) {
+                        userMessage += '\n\nTo fix this: Upload a CSV file, select date range, and click "Process Data" first.';
+                    } else if (error.message.includes('browser security') || error.message.includes('permission')) {
+                        userMessage += '\n\nTo fix this: Check your browser\'s download settings and allow downloads from this page.';
+                    } else if (error.message.includes('storage') || error.message.includes('quota')) {
+                        userMessage += '\n\nTo fix this: Free up disk space on your device and try again.';
+                    }
+
+                    UIHelpers.showError(userMessage);
+                    console.error('Download error:', {
+                        message: error.message,
+                        stack: error.stack,
+                        timestamp: new Date().toISOString(),
+                        dataAvailable: !!window.processedData,
+                        dataLength: window.processedData ? window.processedData.length : 0,
+                        originalFileName: window.originalFileName
+                    });
+
+                } finally {
+                    // Always hide processing indicator
+                    UIHelpers.hideProcessing();
+                }
+            });
+        }
+
+        // FileHandler class extension for download functionality
+        FileHandler.downloadCSV = function (csvContent, originalFileName) {
+            try {
+                // Validate inputs
+                if (!csvContent || typeof csvContent !== 'string') {
+                    throw new Error('Invalid CSV content provided for download');
+                }
+
+                if (!originalFileName || typeof originalFileName !== 'string') {
+                    throw new Error('Invalid original filename provided');
+                }
+
+                // Generate processed filename with sanitization
+                const sanitizedBaseName = originalFileName
+                    .replace(/\.[^/.]+$/, '') // Remove extension
+                    .replace(/[^a-zA-Z0-9_\-\s]/g, '_') // Replace invalid characters
+                    .trim();
+
+                if (!sanitizedBaseName) {
+                    throw new Error('Unable to generate valid filename from original name');
+                }
+
+                const processedFileName = `${sanitizedBaseName}_processed.csv`;
+
+                // Check browser compatibility
+                if (typeof Blob === 'undefined') {
+                    throw new Error('Your browser does not support file downloads. Please use a modern browser.');
+                }
+
+                if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+                    throw new Error('Your browser does not support the required download APIs. Please update your browser.');
+                }
+
+                // Create blob with CSV content and proper encoding
+                let blob;
+                try {
+                    // Add BOM for better Excel compatibility
+                    const BOM = '\uFEFF';
+                    blob = new Blob([BOM + csvContent], {
+                        type: 'text/csv;charset=utf-8;'
+                    });
+                } catch (blobError) {
+                    throw new Error(`Failed to create download file: ${blobError.message}`);
+                }
+
+                // Validate blob creation
+                if (!blob || blob.size === 0) {
+                    throw new Error('Failed to create download file - file appears to be empty');
+                }
+
+                // Create download link with error handling
+                let link, url;
+                try {
+                    url = URL.createObjectURL(blob);
+                    link = document.createElement('a');
+
+                    // Set download attributes
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', processedFileName);
+                    link.style.visibility = 'hidden';
+                    link.style.position = 'absolute';
+                    link.style.left = '-9999px';
+
+                    // Add accessibility attributes
+                    link.setAttribute('aria-label', `Download processed CSV file: ${processedFileName}`);
+
+                } catch (linkError) {
+                    if (url) URL.revokeObjectURL(url);
+                    throw new Error(`Failed to create download link: ${linkError.message}`);
+                }
+
+                // Attempt download with cleanup
+                try {
+                    // Add to document temporarily
+                    document.body.appendChild(link);
+
+                    // Trigger download
+                    link.click();
+
+                    // Verify link was clicked (some browsers may block)
+                    setTimeout(() => {
+                        try {
+                            if (link.parentNode) {
+                                document.body.removeChild(link);
+                            }
+                        } catch (cleanupError) {
+                            console.warn('Minor cleanup error:', cleanupError.message);
+                        }
+                    }, 100);
+
+                } catch (clickError) {
+                    // Clean up on error
+                    try {
+                        if (link.parentNode) {
+                            document.body.removeChild(link);
+                        }
+                    } catch (cleanupError) {
+                        console.warn('Cleanup error:', cleanupError.message);
+                    }
+
+                    throw new Error(`Download trigger failed: ${clickError.message}. Your browser may be blocking downloads.`);
+
+                } finally {
+                    // Always clean up the URL object
+                    if (url) {
+                        try {
+                            URL.revokeObjectURL(url);
+                        } catch (revokeError) {
+                            console.warn('URL cleanup error:', revokeError.message);
+                        }
+                    }
+                }
+
+                // Log successful download attempt
+                console.log('Download initiated:', {
+                    filename: processedFileName,
+                    size: blob.size,
+                    timestamp: new Date().toISOString()
+                });
+
+            } catch (error) {
+                // Re-throw with enhanced context
+                throw new Error(`File download failed: ${error.message}`);
+            }
+        };
+    </script>
+</body>
+
+</html>

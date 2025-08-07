@@ -1,0 +1,79 @@
+Tracked by Name	Billable	Task Billing Rate Name	Sum
+Aimee Pieterse	No	Internal Non-Billable	0
+Aimee Pieterse	No	Project Management	1960
+Aimee Pieterse	Yes	Exonic Flat Rate	48400
+Aimee Pieterse	Yes	Project Management	19680
+Billy Einkamerer	No	Internal Non-Billable	0
+Billy Einkamerer	No	Maintenance and Support	1050
+Billy Einkamerer	No	Solution Design Flat Rate	10000
+Billy Einkamerer	No	Tester	1960
+Billy Einkamerer	Yes	Deployment	1105
+Calvin Smart	No	Solution Design Flat Rate	2000
+Darryn Hosking	No	Development (Luna SNR)	1320
+Darryn Hosking	No	Meetings	0
+Darryn Hosking	Yes	Development (Luna SNR)	7920
+Darryn Hosking	Yes	Senior Development	19400
+Darryn Hosking	Yes	Snr Contracted Development [R1,050]	1300
+Johnscreams Ramongalo	No	Project Management	6860
+Jordan Levy	No	Internal Non-Billable	0
+Jordan Levy	No	Junior Dev-Ops	960
+Jordan Levy	No	Meetings	0
+Jordan Levy	No	Senior Dev-Ops	17500
+Jordan Levy	No	Senior Development	22100
+Jordan Levy	Yes	Meetings	0
+Jordan Levy	Yes	Senior Dev-Ops	41250
+Jordan Levy	Yes	Snr Contracted Development [R1,050]	2600
+Jordan Levy	Yes	Well Architected Review (WAR) Quantity	8500
+Kevin Coto	No	Intermediate Development	20520
+Kevin Coto	No	Junior Development	3200
+Kevin Coto	Yes	Design	1127
+Kevin Coto	Yes	Exonic Flat Rate	4400
+Kevin Coto	Yes	Junior Development	5600
+Kevin Coto	Yes	Senior Development	7800
+Kyle Ladanyi	No	Meetings	0
+Kyle Ladanyi	No	Project Management	65660
+Michael Ginsberg	No	Exonic Flat Rate	2200
+Michael Ginsberg	No	Internal Non-Billable	0
+Michael Ginsberg	No	Junior Dev-Ops	19200
+Michael Ginsberg	No	Junior Development	4000
+Michael Ginsberg	No	Meetings	0
+Michael Ginsberg	No	Senior Development	1300
+Michael Ginsberg	No	Tester	4900
+Michael Ginsberg	Yes	Exonic Flat Rate	55000
+Michael Ginsberg	Yes	Junior Dev-Ops	15360
+Michael Ginsberg	Yes	Junior Development	800
+Michael Ginsberg	Yes	Meetings	0
+Michael Ginsberg	Yes	Tester	1960
+Nick Thorby	No	Code Reviews	2550
+Nick Thorby	No	Internal Non-Billable	0
+Nick Thorby	No	Maintenance and Support	2100
+Nick Thorby	No	Meetings	0
+Nick Thorby	No	Senior Development	18200
+Nick Thorby	Yes	Exonic Flat Rate	27500
+Nick Thorby	Yes	Meetings	0
+Nick Thorby	Yes	Senior Development	29900
+Nick Thorby	Yes	Tester	980
+Prince Radebe	No	Intermediate Development	1080
+Prince Radebe	Yes	Intermediate Development	8640
+Sam Thorby	No	Project Management	149940
+Sam Thorby	Yes	Project Management	146020
+Shane Drower-Copley	Yes	Snr Contracted Development [R1,050]	11700
+Telisa Lombard	No	Code Reviews	1700
+Telisa Lombard	No	Intermediate Development	1080
+Telisa Lombard	No	Junior Development	2400
+Telisa Lombard	No	Meetings	0
+Telisa Lombard	Yes	Junior Development	71200
+Telisa Lombard	Yes	Meetings	0
+Wes John	No	Code Reviews	6800
+Wes John	No	Internal Non-Billable	0
+Wes John	No	Meetings	0
+Wes John	No	Tester	32340
+Wes John	Yes	Exonic Flat Rate	12100
+Wes John	Yes	Meetings	0
+Wes John	Yes	Senior Development	3900
+Wes John	Yes	Tester	34300
+Wesley Swanepoel	No	Meetings	0
+Wesley Swanepoel	No	Snr Contracted Development [R1,050]	1300
+Wesley Swanepoel	Yes	Project Management	1960
+Wesley Swanepoel	Yes	Senior Development	6500
+Wesley Swanepoel	Yes	Snr Contracted Development [R1,050]	11700
