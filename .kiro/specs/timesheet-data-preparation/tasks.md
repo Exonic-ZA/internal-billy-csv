@@ -68,3 +68,11 @@
   - Add keyboard navigation and accessibility features
   - Test with various file sizes and edge cases
   - _Requirements: 5.3, 5.4, 5.5_
+
+- [x] 11. Add support for extended CSV format with automatic detection
+  - Implement file type detection for basic (3-column) and extended (4-column) formats
+  - Update DataProcessor.validateData() to handle both "Tracked by Name", "Billable", "Sum" and "Tracked by Name", "Billable", "Task Billing Rate Name", "Sum" formats
+  - Add different filename generation: basic format uses "_processed" suffix, extended format uses "_Month_Year" format
+  - Update UI help text and success messages to indicate detected file type
+  - Update documentation to reflect both supported formats
+  - _Requirements: Support for data-rands.csv format with automatic detection_

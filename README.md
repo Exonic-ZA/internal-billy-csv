@@ -26,7 +26,9 @@ The Timesheet Data Preparation Tool is designed to streamline the process of pre
 
 1. **Upload CSV File**:
    - Click "Choose File" to select your timesheet CSV
-   - Supported format: CSV files with columns "Tracked by Name", "Billable", and "Sum"
+   - Supported formats:
+     - Basic: "Tracked by Name", "Billable", "Sum"
+     - Extended: "Tracked by Name", "Billable", "Task Billing Rate Name", "Sum"
 
 2. **Set Date Range**:
    - Select the start and end dates for the timesheet period
@@ -38,31 +40,50 @@ The Timesheet Data Preparation Tool is designed to streamline the process of pre
 
 4. **Download Results**:
    - Click "Download Processed CSV" to save the enhanced file
-   - File will be named `<original_filename>_processed.csv`
+   - Basic format files: `<original_filename>_processed.csv`
+   - Extended format files: `<original_filename>_<Month>_<Year>.csv`
 
-### Expected Input Format
+### Expected Input Formats
 
-Your CSV file should contain the following columns:
+The tool automatically detects and supports two CSV formats:
+
+**Basic Format:**
 ```
 Tracked by Name,Billable,Sum
 John Doe,Yes,45.5
 Jane Smith,No,32.25
 ```
 
+**Extended Format (with Task Billing Rate Name):**
+```
+Tracked by Name,Billable,Task Billing Rate Name,Sum
+John Doe,Yes,Senior Development,45.5
+Jane Smith,No,Project Management,32.25
+```
+
 ### Output Format
 
 The processed file will include the original data plus month and year columns:
+
+**Basic Format Output:**
 ```
 Tracked by Name,Billable,Sum,Month,Year
 John Doe,Yes,45.5,January,2024
 Jane Smith,No,32.25,January,2024
 ```
 
+**Extended Format Output:**
+```
+Tracked by Name,Billable,Task Billing Rate Name,Sum,Month,Year
+John Doe,Yes,Senior Development,45.5,January,2024
+Jane Smith,No,Project Management,32.25,January,2024
+```
+
 ## Sample Data
 
 The `data/` directory contains sample CSV files:
-- `data.csv`: Sample timesheet data for testing
-- `data-rands.csv`: Additional sample data
+- `data.csv`: Sample timesheet data in basic format (3 columns)
+- `data-rands.csv`: Sample timesheet data in extended format (4 columns with Task Billing Rate Name)
 
 ## Technical Details
 

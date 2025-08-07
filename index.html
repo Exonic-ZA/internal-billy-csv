@@ -373,8 +373,9 @@
                     <label for="csvFile">Select CSV File:</label>
                     <input type="file" id="csvFile" class="form-control" accept=".csv" aria-describedby="fileHelp">
                     <small id="fileHelp" style="color: #6c757d; margin-top: 5px; display: block;">
-                        Please select a CSV file containing timesheet data with columns: "Tracked by Name", "Billable",
-                        "Sum"
+                        Please select a CSV file containing timesheet data. Supported formats:<br>
+                        • Basic: "Tracked by Name", "Billable", "Sum"<br>
+                        • Extended: "Tracked by Name", "Billable", "Task Billing Rate Name", "Sum"
                     </small>
                 </div>
 
@@ -1486,6 +1487,50 @@
             }
 
             /**
+             * Detects the type of CSV file based on its columns
+             * @param {Array<Object>} data - Array of objects representing CSV rows
+             * @returns {Object} Detection result with fileType and columns info
+             */
+            static detectFileType(data) {
+                if (!Array.isArray(data) || data.length === 0) {
+                    return {
+                        fileType: 'unknown',
+                        error: 'No data found in CSV file'
+                    };
+                }
+
+                const firstRow = data[0];
+                const columns = Object.keys(firstRow);
+
+                // Type 1: Basic format with 3 columns
+                const type1Columns = ['Tracked by Name', 'Billable', 'Sum'];
+                const hasType1Columns = type1Columns.every(col => columns.includes(col));
+
+                // Type 2: Extended format with 4 columns (includes Task Billing Rate Name)
+                const type2Columns = ['Tracked by Name', 'Billable', 'Task Billing Rate Name', 'Sum'];
+                const hasType2Columns = type2Columns.every(col => columns.includes(col));
+
+                if (hasType2Columns) {
+                    return {
+                        fileType: 'extended',
+                        columns: type2Columns,
+                        description: 'Extended format with Task Billing Rate Name'
+                    };
+                } else if (hasType1Columns) {
+                    return {
+                        fileType: 'basic',
+                        columns: type1Columns,
+                        description: 'Basic format'
+                    };
+                } else {
+                    return {
+                        fileType: 'unknown',
+                        error: `Unsupported CSV format. Expected columns: ${type1Columns.join(', ')} OR ${type2Columns.join(', ')}`
+                    };
+                }
+            }
+
+            /**
              * Validates that the data contains required columns
              * @param {Array<Object>} data - Array of data objects to validate
              * @returns {Object} Validation result with isValid boolean and error message
@@ -1505,32 +1550,20 @@
                     };
                 }
 
-                // Check for required columns in the first row
-                const firstRow = data[0];
-                const requiredColumns = ['Tracked by Name', 'Billable', 'Sum'];
-                const availableColumns = Object.keys(firstRow);
-
-                // Check for exact matches first
-                const missingColumns = requiredColumns.filter(col => !availableColumns.includes(col));
-
-                if (missingColumns.length > 0) {
-                    // Try case-insensitive matching
-                    const availableColumnsLower = availableColumns.map(col => col.toLowerCase());
-                    const stillMissing = missingColumns.filter(col =>
-                        !availableColumnsLower.includes(col.toLowerCase())
-                    );
-
-                    if (stillMissing.length > 0) {
-                        return {
-                            isValid: false,
-                            error: `Missing required columns: ${stillMissing.join(', ')}. Available columns: ${availableColumns.join(', ')}`
-                        };
-                    }
+                const detection = this.detectFileType(data);
+                
+                if (detection.fileType === 'unknown') {
+                    return {
+                        isValid: false,
+                        error: detection.error
+                    };
                 }
 
                 return {
                     isValid: true,
-                    error: null
+                    error: null,
+                    fileType: detection.fileType,
+                    description: detection.description
                 };
             }
 
@@ -2299,13 +2332,15 @@ Billy Einkamerer\tYes\t0.75`;
                     throw new Error(`CSV parsing failed: ${errorMessage}`);
                 }
 
-                // Validate the parsed data structure
+                // Validate the parsed data structure and detect file type
                 const dataValidation = DataProcessor.validateData(parsedData);
                 if (!dataValidation.isValid) {
                     // Provide helpful suggestions for missing columns
                     let errorMessage = dataValidation.error;
-                    if (errorMessage.includes('Missing required columns')) {
-                        errorMessage += '\n\nTip: Please ensure your CSV file contains columns named exactly "Tracked by Name", "Billable", and "Sum" (case-sensitive).';
+                    if (errorMessage.includes('Unsupported CSV format')) {
+                        errorMessage += '\n\nTip: Please ensure your CSV file contains either:\n' +
+                                      '• Basic format: "Tracked by Name", "Billable", "Sum"\n' +
+                                      '• Extended format: "Tracked by Name", "Billable", "Task Billing Rate Name", "Sum"';
 
                         // Show available columns for debugging
                         if (parsedData.length > 0) {
@@ -2315,6 +2350,9 @@ Billy Einkamerer\tYes\t0.75`;
                     }
                     throw new Error(errorMessage);
                 }
+
+                // Store the detected file type for later use
+                window.detectedFileType = dataValidation.fileType;
 
                 // Check for reasonable data size
                 if (parsedData.length === 0) {
@@ -2365,8 +2403,9 @@ Billy Einkamerer\tYes\t0.75`;
 
                 // Show success message with detailed information
                 const dateInfo = DataProcessor.extractDateInfo(startDate.value, endDate.value);
+                const fileTypeDescription = dataValidation.description || 'Unknown format';
                 UIHelpers.showSuccess(
-                    `Successfully processed ${processedData.length} rows of data. ` +
+                    `Successfully processed ${processedData.length} rows of data (${fileTypeDescription}). ` +
                     `Added "${dateInfo.monthName} ${dateInfo.year}" to each row.`
                 );
 
@@ -2567,9 +2606,20 @@ Billy Einkamerer\tYes\t0.75`;
             const downloadSection = document.getElementById('downloadSection');
             const downloadFileName = document.getElementById('downloadFileName');
 
-            // Generate processed filename
+            // Generate processed filename based on file type
             const baseName = originalFileName.replace(/\.[^/.]+$/, ''); // Remove extension
-            const processedFileName = `${baseName}_processed.csv`;
+            const fileType = window.detectedFileType || 'basic';
+            
+            let processedFileName;
+            if (fileType === 'extended') {
+                // For extended format (with Task Billing Rate Name), add month and year to filename
+                const startDate = document.getElementById('startDate').value;
+                const dateInfo = DataProcessor.extractDateInfo(startDate, startDate);
+                processedFileName = `${baseName}_${dateInfo.monthName}_${dateInfo.year}.csv`;
+            } else {
+                // For basic format, use the original naming convention
+                processedFileName = `${baseName}_processed.csv`;
+            }
 
             downloadFileName.textContent = processedFileName;
             downloadSection.classList.add('show');
